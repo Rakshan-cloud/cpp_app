@@ -9,6 +9,8 @@ env:
   NODE_VERSION: '22'
   AWS_REGION: ap-southeast-2
   S3_FRONTEND_BUCKET: rakshan-frontend
+  EB_APP_NAME: rakshan
+  EB_ENV_NAME: rakshan-prod
 
 jobs:
   # Stage 1: Test the qr_ticket_manager custom library
@@ -36,11 +38,57 @@ jobs:
       - name: Run library tests
         run: pytest tests/ -v --tb=short
 
-  # Stage 2: Build and deploy React frontend to S3
+  # Stage 2: Deploy Flask backend to Elastic Beanstalk
+  deploy-backend:
+    name: Deploy Backend to Elastic Beanstalk
+    runs-on: ubuntu-latest
+    needs: test-library
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Package backend with library
+        run: |
+          # Copy the library into the backend directory so EB has it
+          cp -r qr_ticket_manager/qr_ticket_manager backend/qr_ticket_manager
+          # Copy lambda functions for local fallback
+          cp -r lambda_functions backend/lambda_functions
+          # Create deployment zip
+          cd backend
+          zip -r ../deploy-package.zip . \
+            -x "*.pyc" \
+            -x "*__pycache__/*" \
+            -x "tests/*" \
+            -x "local_data/*" \
+            -x ".gitignore" \
+            -x "*.egg-info/*"
+          cd ..
+          echo "Package size: $(du -h deploy-package.zip | cut -f1)"
+
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ env.EB_APP_NAME }}
+          environment_name: ${{ env.EB_ENV_NAME }}
+          version_label: "deploy-${{ github.sha }}"
+          region: ${{ env.AWS_REGION }}
+          deployment_package: deploy-package.zip
+          wait_for_environment_recovery: 120
+
+  # Stage 3: Build and deploy React frontend to S3
   deploy-frontend:
     name: Build and Deploy Frontend
     runs-on: ubuntu-latest
-    needs: test-library
+    needs: deploy-backend
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -76,6 +124,7 @@ jobs:
         run: |
           aws s3 sync frontend/dist/ s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
-      - name: Print Frontend URL
+      - name: Print Deployed URLs
         run: |
-          echo "Frontend deployed to: http://${{ env.S3_FRONTEND_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+          echo "Frontend: http://${{ env.S3_FRONTEND_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+          echo "Backend:  http://${{ env.EB_ENV_NAME }}.eba-7mxtcx4w.${{ env.AWS_REGION }}.elasticbeanstalk.com"
