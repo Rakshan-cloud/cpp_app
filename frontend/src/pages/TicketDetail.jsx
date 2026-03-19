@@ -11,7 +11,7 @@ export default function TicketDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [showQrData, setShowQrData] = useState(false);
+  const [showQrData, setShowQrData] = useState(true);
 
   useEffect(() => {
     ticketsAPI.get(id)

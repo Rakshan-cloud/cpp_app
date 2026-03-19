@@ -50,14 +50,14 @@ export const registrationsAPI = {
 
 export const ticketsAPI = {
   get: (id) => api.get(`/tickets/${id}`),
-  getQrUrl: (id) => `/api/tickets/${id}/qr`,
+  getQrUrl: (id) => `${import.meta.env.VITE_API_URL || '/api'}/tickets/${id}/qr`,
   validate: (qrData) => api.post('/tickets/validate', { qr_data: qrData }),
 };
 
 export const adminAPI = {
   dashboard: () => api.get('/admin/dashboard'),
   attendees: (eventId) => api.get(`/admin/events/${eventId}/attendees`),
-  exportUrl: (eventId) => `/api/admin/events/${eventId}/export`,
+  exportUrl: (eventId) => `${import.meta.env.VITE_API_URL || '/api'}/admin/events/${eventId}/export`,
 };
 
 export default api;
