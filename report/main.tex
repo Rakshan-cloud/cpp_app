@@ -158,7 +158,7 @@ The security model implements defence in depth across multiple layers, following
 
 The \texttt{qr\_ticket\_manager} library was developed as a standalone Python package to encapsulate the complete ticket lifecycle: generation, QR code creation, and validation. The decision to implement this as a separate library rather than inline application code was motivated by several factors. The same cryptographic logic is required in both Lambda functions (generator and validator) and potentially in the Flask API, making code reuse essential for consistency and maintainability. Publishing the library as an installable package with \texttt{setup.py} and \texttt{pyproject.toml} enables independent versioning, testing with pytest, and potential reuse in other projects requiring QR-based authentication. The library follows object-oriented design principles, with each class encapsulating a distinct responsibility and a custom exception hierarchy providing granular error handling.
 
-The library is published on the Python Package Index (PyPI) at \url{https://pypi.org/project/qr-ticket-manager/} and can be installed via \texttt{pip install qr-ticket-manager}. The source code is maintained within the project repository at \url{https://github.com/Rakshan-cloud/cpp\_app}.
+The library is published on the Python Package Index (PyPI) at \url{https://pypi.org/project/qr-ticket-manager/} and can be installed via \texttt{pip install qr-ticket-manager}. The source code is maintained within a private GitHub repository at \url{https://github.com/Rakshan-cloud/cpp\_app}.
 
 \subsection{Library Structure and Implementation}
 
@@ -345,7 +345,9 @@ The backend deployment uses Elastic Beanstalk's application versioning system. T
 
 Lambda functions are deployed as ZIP packages containing both the handler code and the \texttt{qr\_ticket\_manager} library with all dependencies. A notable deployment challenge arose from cross-platform binary compatibility: the Pillow imaging library, required for QR code generation, ships platform-specific compiled extensions. Development on macOS ARM required explicit targeting of \texttt{manylinux\_2\_28\_x86\_64} wheel packages during dependency installation to ensure compatibility with the Lambda execution environment.
 
-The deployed application is accessible at: \url{http://rakshan-frontend.s3-website-ap-southeast-2.amazonaws.com}
+A CI/CD pipeline was implemented using GitHub Actions, triggered on every push to the main branch of the private repository. The pipeline consists of three sequential stages that ensure code quality before deployment. The first stage runs the custom library's test suite using pytest, executing fifteen unit tests that validate ticket generation, signature verification, QR code creation, and all failure modes. Only when all tests pass does the pipeline proceed to deployment. The second stage packages the Flask backend with the custom library and deploys it to Elastic Beanstalk by uploading the application bundle to S3 and creating a new application version. The third stage builds the React frontend with production environment variables injected at build time and synchronises the compiled assets to the S3 hosting bucket. All sensitive configuration values including AWS credentials are stored as encrypted GitHub Secrets and never exposed in the repository or build logs. This pipeline embodies the principles of continuous integration through automated testing, continuous delivery through automated packaging, and continuous deployment through automatic release to the production environment.
+
+The deployed application is accessible at: \url{http://rakshan-frontend.s3-website-ap-southeast-2.amazonaws.com}. The backend API is hosted at: \url{http://rakshan-prod.eba-7mxtcx4w.ap-southeast-2.elasticbeanstalk.com}. The custom library is published at: \url{https://pypi.org/project/qr-ticket-manager/}.
 
 \section{Conclusions}
 
@@ -361,7 +363,7 @@ Integrating Cognito for email verification demonstrated how managed identity ser
 
 Overall, the project achieved its three primary objectives: developing a functional custom library with comprehensive cryptographic ticket management, integrating six AWS cloud services programmatically into a cohesive application, and deploying a publicly accessible platform demonstrating the complete ticketing workflow from registration through QR-based event check-in.
 
-A CI/CD pipeline was implemented using GitHub Actions, triggered on every push to the main branch. The pipeline consists of three stages: testing the custom library with pytest, deploying the Flask backend to Elastic Beanstalk, and building and deploying the React frontend to S3. AWS credentials are stored as encrypted GitHub repository secrets, ensuring that no sensitive values are committed to the codebase. The project could be extended in several directions for production readiness, including adding Amazon CloudFront as a CDN for HTTPS support and implementing infrastructure-as-code through AWS CloudFormation or Terraform to formalise the resource provisioning process.
+The project could be extended in several directions for production readiness, including adding Amazon CloudFront as a CDN for HTTPS support, implementing infrastructure-as-code through AWS CloudFormation or Terraform to formalise the resource provisioning process, and integrating Amazon SNS for real-time push notifications when tickets are validated at event venues.
 
 \begin{thebibliography}{00}
 
