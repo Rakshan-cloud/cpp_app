@@ -4,9 +4,9 @@ A cloud-based event ticketing platform that uses HMAC-SHA256 cryptographically s
 
 ## Deployed Application
 
-- **Frontend**: http://rakshan-frontend.s3-website-ap-southeast-2.amazonaws.com
-- **Backend API**: http://rakshan-prod.eba-7mxtcx4w.ap-southeast-2.elasticbeanstalk.com
-- **Health Check**: http://rakshan-prod.eba-7mxtcx4w.ap-southeast-2.elasticbeanstalk.com/api/health
+- **Frontend**: http://rakshan-frontend.s3-website-eu-west-1.amazonaws.com
+- **Backend API**: http://rakshan-prod.eba-7mxtcx4w.eu-west-1.elasticbeanstalk.com
+- **Health Check**: http://rakshan-prod.eba-7mxtcx4w.eu-west-1.elasticbeanstalk.com/api/health
 
 ### Demo Credentials
 
@@ -248,7 +248,7 @@ All 15 tests should pass covering ticket generation, validation, and QR code cre
 
 ```bash
 aws configure
-# Region: ap-southeast-2
+# Region: eu-west-1
 # Output: json
 ```
 
@@ -354,7 +354,7 @@ aws lambda create-function --function-name qr-ticket-validator \
 cd backend
 
 # Initialise EB application
-eb init rakshan-backend --platform python-3.9 --region ap-southeast-2
+eb init rakshan-backend --platform python-3.9 --region eu-west-1
 
 # Create environment (single instance, t3.micro)
 eb create rakshan-prod --single --instance-types t3.micro
@@ -395,7 +395,7 @@ option_settings:
     FLASK_ENV: production
     TICKET_SECRET_KEY: ticket-hmac-secret-key-2026
     S3_BUCKET: rakshan-qr-tickets
-    AWS_REGION: ap-southeast-2
+    AWS_REGION: eu-west-1
   aws:elasticbeanstalk:container:python:
     WSGIPath: application:application
 ```
@@ -421,7 +421,7 @@ The application uses two configuration classes:
 | `SECRET_KEY` | JWT signing secret | `dev-secret-key-change-in-production` |
 | `TICKET_SECRET_KEY` | HMAC-SHA256 key for ticket signing | `ticket-hmac-secret-key-2026` |
 | `S3_BUCKET` | S3 bucket name for QR images | `rakshan-qr-tickets` |
-| `AWS_REGION` | AWS region | `ap-southeast-2` |
+| `AWS_REGION` | AWS region | `eu-west-1` |
 | `CORS_ORIGINS` | Comma-separated allowed origins | `http://localhost:3000` |
 | `VITE_API_URL` | Backend API base URL (frontend build-time) | `/api` |
 

@@ -8,8 +8,8 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
     TICKET_SECRET_KEY = os.environ.get("TICKET_SECRET_KEY", "ticket-hmac-secret-key-2026")
     JWT_EXPIRATION_HOURS = int(os.environ.get("JWT_EXPIRATION_HOURS", "24"))
-    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://rakshan-frontend.s3-website-ap-southeast-2.amazonaws.com").split(",")
-    COGNITO_USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID", "ap-southeast-2_yK2wHJqUR")
+    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://rakshan-frontend.s3-website-eu-west-1.amazonaws.com").split(",")
+    COGNITO_USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID", "eu-west-1_yK2wHJqUR")
     COGNITO_CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "7n5fhjhl3ktldkokc6nen4p9co")
 
 
@@ -33,7 +33,7 @@ class ProductionConfig(Config):
     DEBUG = False
     ENV = "production"
     DYNAMODB_ENDPOINT = None  # Use default AWS endpoint
-    AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+    AWS_REGION = os.environ.get("AWS_REGION", "eu-west-1")
     S3_BUCKET = os.environ.get("S3_BUCKET", "rakshan-qr-tickets")
     USE_LOCAL_STORAGE = False
     USE_LOCAL_LAMBDA = False

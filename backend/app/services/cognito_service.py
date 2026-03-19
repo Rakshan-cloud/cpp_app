@@ -21,7 +21,7 @@ class CognitoService:
         self.client_id = getattr(app_config, "COGNITO_CLIENT_ID", "")
 
         if self.enabled:
-            region = getattr(app_config, "AWS_REGION", "ap-southeast-2")
+            region = getattr(app_config, "AWS_REGION", "eu-west-1")
             self.client = boto3.client("cognito-idp", region_name=region)
         else:
             self.client = None
