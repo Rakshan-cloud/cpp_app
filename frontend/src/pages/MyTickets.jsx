@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { registrationsAPI } from '../services/api';
+import { registrationsAPI, ticketsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Ticket, Calendar, MapPin, XCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Ticket, Calendar, MapPin, XCircle, CheckCircle, AlertCircle, QrCode, ArrowRight } from 'lucide-react';
 
 export default function MyTickets() {
   const [registrations, setRegistrations] = useState([]);
@@ -34,72 +34,101 @@ export default function MyTickets() {
 
   if (loading) return <LoadingSpinner text="Loading your tickets..." />;
 
-  const statusBadge = (status) => {
-    if (status === 'confirmed') return 'text-success bg-emerald-50 border-emerald-100';
-    if (status === 'cancelled') return 'text-danger bg-red-50 border-red-100';
-    return 'text-amber-600 bg-amber-50 border-amber-100';
-  };
-
-  const statusIcon = (status) => {
-    if (status === 'confirmed') return <CheckCircle className="w-3 h-3" />;
-    if (status === 'cancelled') return <XCircle className="w-3 h-3" />;
-    return <AlertCircle className="w-3 h-3" />;
+  const statusConfig = {
+    confirmed: { color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', dotColor: 'bg-emerald-500', label: 'Confirmed' },
+    cancelled: { color: 'text-red-600', bg: 'bg-red-50 border-red-200', dotColor: 'bg-red-500', label: 'Cancelled' },
   };
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-bold mb-6">My Tickets</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-text">My Tickets</h1>
+          <p className="text-sm text-text-muted mt-1">{registrations.length} registration{registrations.length !== 1 ? 's' : ''}</p>
+        </div>
+        <Link to="/events" className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-light no-underline font-medium">
+          Browse events <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
 
       {registrations.length === 0 ? (
-        <div className="text-center py-20">
-          <Ticket className="w-10 h-10 text-border mx-auto mb-3" />
-          <p className="text-text-muted mb-3">No tickets yet</p>
-          <Link to="/events" className="text-accent hover:text-accent-light no-underline text-sm font-medium">Browse events</Link>
+        <div className="text-center py-20 bg-white rounded-xl border border-border-light">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Ticket className="w-8 h-8 text-border" />
+          </div>
+          <h3 className="text-base font-semibold text-text mb-1">No tickets yet</h3>
+          <p className="text-text-muted text-sm mb-4">Register for an event to get your first ticket</p>
+          <Link to="/events" className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-medium no-underline transition-colors">
+            Browse events <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       ) : (
         <div className="space-y-3">
-          {registrations.map((reg) => (
-            <div key={reg.registration_id} className="bg-white rounded-lg border border-border-light p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h3 className="text-sm font-semibold truncate">{reg.event_name || 'Event'}</h3>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border ${statusBadge(reg.status)}`}>
-                    {statusIcon(reg.status)} {reg.status}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-text-muted">
-                  {reg.event_date && (
-                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {reg.event_date}</span>
+          {registrations.map((reg) => {
+            const st = statusConfig[reg.status] || statusConfig.confirmed;
+            return (
+              <div key={reg.registration_id} className="bg-white rounded-xl border border-border-light overflow-hidden hover:shadow-sm transition-shadow">
+                <div className="flex flex-col sm:flex-row">
+                  {/* QR Preview (left side) */}
+                  {reg.status === 'confirmed' && reg.ticket && (
+                    <Link to={`/tickets/${reg.ticket.ticket_id}`} className="sm:w-24 sm:min-h-full bg-gray-50 border-b sm:border-b-0 sm:border-r border-border-light flex items-center justify-center p-3 no-underline">
+                      <img
+                        src={ticketsAPI.getQrUrl(reg.ticket.ticket_id)}
+                        alt="QR"
+                        className="w-16 h-16 object-contain opacity-80"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </Link>
                   )}
-                  {reg.event_location && (
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {reg.event_location}</span>
-                  )}
-                  {reg.checked_in && (
-                    <span className="flex items-center gap-1 text-success"><CheckCircle className="w-3 h-3" /> Checked in</span>
-                  )}
+
+                  {/* Ticket Info */}
+                  <div className="flex-1 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h3 className="text-sm font-semibold text-text truncate">{reg.event_name || 'Event'}</h3>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${st.bg} ${st.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${st.dotColor}`}></span>
+                          {st.label}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-xs text-text-muted">
+                        {reg.event_date && (
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {reg.event_date}</span>
+                        )}
+                        {reg.event_location && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {reg.event_location}</span>
+                        )}
+                        {reg.checked_in && (
+                          <span className="flex items-center gap-1 text-emerald-600 font-medium"><CheckCircle className="w-3 h-3" /> Checked in</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {reg.status === 'confirmed' && reg.ticket && (
+                        <Link
+                          to={`/tickets/${reg.ticket.ticket_id}`}
+                          className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3.5 py-2 rounded-lg text-xs font-medium no-underline transition-colors"
+                        >
+                          <QrCode className="w-3.5 h-3.5" /> View Ticket
+                        </Link>
+                      )}
+                      {reg.status === 'confirmed' && (
+                        <button
+                          onClick={() => handleCancel(reg.registration_id)}
+                          disabled={cancelling === reg.registration_id}
+                          className="text-xs text-text-muted hover:text-danger bg-transparent border border-border-light hover:border-red-200 px-3 py-2 rounded-lg cursor-pointer font-medium transition-colors disabled:opacity-50"
+                        >
+                          {cancelling === reg.registration_id ? 'Cancelling...' : 'Cancel'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {reg.status === 'confirmed' && reg.ticket && (
-                  <Link
-                    to={`/tickets/${reg.ticket.ticket_id}`}
-                    className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-md text-xs font-medium no-underline transition-colors"
-                  >
-                    <Ticket className="w-3.5 h-3.5" /> View Ticket
-                  </Link>
-                )}
-                {reg.status === 'confirmed' && (
-                  <button
-                    onClick={() => handleCancel(reg.registration_id)}
-                    disabled={cancelling === reg.registration_id}
-                    className="text-xs text-danger hover:text-red-700 bg-transparent border border-red-200 hover:border-red-300 px-3 py-1.5 rounded-md cursor-pointer font-medium transition-colors disabled:opacity-50"
-                  >
-                    {cancelling === reg.registration_id ? 'Cancelling...' : 'Cancel'}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
