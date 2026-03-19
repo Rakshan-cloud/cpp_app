@@ -2,71 +2,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { QrCode, Calendar, CheckCircle, ArrowRight } from 'lucide-react';
 
-function HeroIllustration() {
-  return (
-    <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-      {/* Person holding phone with QR code */}
-      <rect x="180" y="60" width="140" height="240" rx="16" fill="#1a1a2e" />
-      <rect x="188" y="80" width="124" height="200" rx="4" fill="#f8f8f8" />
-      {/* QR Code on phone screen */}
-      <rect x="210" y="110" width="80" height="80" rx="4" fill="white" stroke="#1a1a2e" strokeWidth="2" />
-      {/* QR pattern */}
-      <rect x="218" y="118" width="12" height="12" fill="#1a1a2e" />
-      <rect x="234" y="118" width="6" height="6" fill="#1a1a2e" />
-      <rect x="244" y="118" width="6" height="6" fill="#1a1a2e" />
-      <rect x="258" y="118" width="12" height="12" fill="#1a1a2e" />
-      <rect x="218" y="134" width="6" height="6" fill="#1a1a2e" />
-      <rect x="234" y="134" width="12" height="6" fill="#1a1a2e" />
-      <rect x="252" y="134" width="6" height="6" fill="#1a1a2e" />
-      <rect x="218" y="144" width="12" height="6" fill="#1a1a2e" />
-      <rect x="238" y="144" width="6" height="6" fill="#1a1a2e" />
-      <rect x="250" y="144" width="6" height="6" fill="#1a1a2e" />
-      <rect x="262" y="144" width="6" height="6" fill="#1a1a2e" />
-      <rect x="218" y="156" width="12" height="12" fill="#1a1a2e" />
-      <rect x="238" y="156" width="6" height="6" fill="#1a1a2e" />
-      <rect x="258" y="156" width="12" height="12" fill="#1a1a2e" />
-      <rect x="234" y="164" width="6" height="6" fill="#1a1a2e" />
-      <rect x="246" y="164" width="6" height="6" fill="#1a1a2e" />
-      {/* Ticket text */}
-      <rect x="208" y="200" width="84" height="8" rx="2" fill="#e0e0e0" />
-      <rect x="220" y="214" width="60" height="6" rx="2" fill="#e8e8e8" />
-      {/* Check mark badge */}
-      <circle cx="290" y="100" r="20" fill="#c75a25" />
-      <path d="M280 100 L287 107 L300 93" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Decorative elements */}
-      <circle cx="120" cy="120" r="40" fill="#c75a25" opacity="0.08" />
-      <circle cx="380" cy="280" r="50" fill="#1a1a2e" opacity="0.05" />
-      <circle cx="100" cy="300" r="6" fill="#c75a25" opacity="0.3" />
-      <circle cx="400" cy="100" r="4" fill="#c75a25" opacity="0.4" />
-      <circle cx="420" cy="180" r="8" fill="#1a1a2e" opacity="0.08" />
-      {/* Scan lines */}
-      <line x1="195" y1="250" x2="305" y2="250" stroke="#c75a25" strokeWidth="2" opacity="0.6" />
-      <line x1="195" y1="250" x2="195" y2="242" stroke="#c75a25" strokeWidth="2" opacity="0.6" />
-      <line x1="305" y1="250" x2="305" y2="242" stroke="#c75a25" strokeWidth="2" opacity="0.6" />
-      {/* Event ticket floating */}
-      <g transform="rotate(-8, 380, 160)">
-        <rect x="340" y="130" width="90" height="55" rx="6" fill="white" stroke="#e0e0e0" strokeWidth="1" />
-        <rect x="348" y="140" width="40" height="6" rx="2" fill="#1a1a2e" />
-        <rect x="348" y="152" width="60" height="4" rx="2" fill="#e0e0e0" />
-        <rect x="348" y="162" width="30" height="4" rx="2" fill="#e0e0e0" />
-        <line x1="400" y1="130" x2="400" y2="185" stroke="#e0e0e0" strokeWidth="1" strokeDasharray="4 3" />
-        <rect x="406" y="145" width="16" height="16" rx="2" fill="#c75a25" opacity="0.15" />
-      </g>
-      {/* Another floating ticket */}
-      <g transform="rotate(5, 100, 200)">
-        <rect x="60" y="175" width="80" height="50" rx="6" fill="white" stroke="#e0e0e0" strokeWidth="1" />
-        <rect x="68" y="185" width="35" height="5" rx="2" fill="#1a1a2e" />
-        <rect x="68" y="195" width="50" height="4" rx="2" fill="#e0e0e0" />
-        <rect x="68" y="205" width="25" height="4" rx="2" fill="#e0e0e0" />
-      </g>
-      {/* Shield icon */}
-      <g transform="translate(350, 250)">
-        <path d="M0 -15 C0 -15, 15 -20, 15 -10 L15 5 C15 15, 0 25, 0 25 C0 25, -15 15, -15 5 L-15 -10 C-15 -20, 0 -15, 0 -15Z" fill="#c75a25" opacity="0.12" stroke="#c75a25" strokeWidth="1" opacity="0.3" />
-      </g>
-    </svg>
-  );
-}
-
 export default function Home() {
   const { user } = useAuth();
 
@@ -94,7 +29,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hidden md:block">
-            <HeroIllustration />
+            <img src="/hero-illustration.svg" alt="Secure ticketing illustration" className="w-full h-auto max-w-md mx-auto" />
           </div>
         </div>
       </section>
