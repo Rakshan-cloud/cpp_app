@@ -1,6 +1,24 @@
 import { useState } from 'react';
 import { ticketsAPI } from '../services/api';
-import { ScanLine, CheckCircle, XCircle, AlertCircle, Shield, User, Calendar, Hash, Copy } from 'lucide-react';
+import { ScanLine, CheckCircle, XCircle, AlertCircle, Shield, Calendar, Hash } from 'lucide-react';
+import CryptoJS from 'crypto-js';
+
+const TICKET_SECRET_KEY = 'ticket-hmac-secret-key-2026';
+
+function verifyHmacSignature(payload, signature) {
+  // Must match Python's json.dumps(payload, sort_keys=True, default=str)
+  // Python uses ", " separators (space after comma and colon)
+  const sortedKeys = Object.keys(payload).sort();
+  const parts = sortedKeys.map(k => {
+    let val = payload[k];
+    if (typeof val === 'object' && val !== null) val = JSON.stringify(val);
+    else val = JSON.stringify(val);
+    return JSON.stringify(k) + ': ' + val;
+  });
+  const payloadStr = '{' + parts.join(', ') + '}';
+  const computed = CryptoJS.HmacSHA256(payloadStr, TICKET_SECRET_KEY).toString(CryptoJS.enc.Hex);
+  return computed === signature;
+}
 
 export default function ScanTicket() {
   const [qrData, setQrData] = useState('');
@@ -15,7 +33,6 @@ export default function ScanTicket() {
     setResult(null);
     setError('');
 
-    // Parse and validate QR data structure
     let parsedQr;
     try {
       parsedQr = JSON.parse(qrData.trim());
@@ -35,7 +52,6 @@ export default function ScanTicket() {
     try {
       const res = await ticketsAPI.validate(qrData.trim());
       const data = res.data;
-      // Check if server returned a real response (not empty)
       if (data && (data.valid !== undefined || data.error_code)) {
         setResult(data);
         setLoading(false);
@@ -48,34 +64,31 @@ export default function ScanTicket() {
         setLoading(false);
         return;
       }
-      // Server failed - fall through to local validation
     }
 
-    // Local validation fallback - verify QR structure and show ticket info
-    const payload = parsedQr.payload;
-    const hasRequiredFields = payload.ticket_id && payload.event_id && payload.user_id;
-    const signaturePresent = parsedQr.signature && parsedQr.signature.length === 64;
+    // Fallback: HMAC-SHA256 signature verification locally
+    const isSignatureValid = verifyHmacSignature(parsedQr.payload, parsedQr.signature);
 
-    if (hasRequiredFields && signaturePresent) {
+    if (isSignatureValid) {
       setResult({
         valid: true,
-        message: 'Ticket structure verified. HMAC-SHA256 signature present (64 hex chars). Ticket is authentic.',
+        message: 'HMAC-SHA256 signature verified successfully. Ticket is authentic.',
         ticket: {
           ticket_id: parsedQr.ticket_id,
-          event_name: payload.event_name || 'Event',
-          user_id: payload.user_id,
+          event_name: parsedQr.payload?.event_name || 'Event',
           status: 'valid',
-          created_at: payload.created_at,
         },
       });
     } else {
       setResult({
         valid: false,
-        error_code: 'INVALID_STRUCTURE',
-        message: !signaturePresent
-          ? 'Invalid signature format - expected 64 character hex string'
-          : 'Missing required fields in ticket payload',
-        ticket: { ticket_id: parsedQr.ticket_id || 'unknown', status: 'invalid' },
+        error_code: 'INVALID_SIGNATURE',
+        message: 'HMAC-SHA256 signature verification FAILED. This ticket may be forged or tampered with.',
+        ticket: {
+          ticket_id: parsedQr.ticket_id,
+          event_name: parsedQr.payload?.event_name || 'Unknown',
+          status: 'invalid',
+        },
       });
     }
     setLoading(false);
