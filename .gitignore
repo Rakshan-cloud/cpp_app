@@ -31,5 +31,10 @@ docker-data/
 *.png
 !frontend/public/*.png
 
+# Assignment briefs / presentations (not for repo)
+*.pptx
+*.docx
+GITHUB_SECRETS_GUIDE.txt
+
 # OS
 .DS_Store
