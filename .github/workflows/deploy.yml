@@ -9,7 +9,7 @@ env:
   NODE_VERSION: '22'
   AWS_REGION: ap-southeast-2
   S3_FRONTEND_BUCKET: rakshan-frontend
-  EB_APP_NAME: rakshan
+  EB_APP_NAME: rakshan-prod
   EB_ENV_NAME: rakshan-prod
 
 jobs:
