@@ -158,7 +158,7 @@ The security model implements defence in depth across multiple layers, following
 
 The \texttt{qr\_ticket\_manager} library was developed as a standalone Python package to encapsulate the complete ticket lifecycle: generation, QR code creation, and validation. The decision to implement this as a separate library rather than inline application code was motivated by several factors. The same cryptographic logic is required in both Lambda functions (generator and validator) and potentially in the Flask API, making code reuse essential for consistency and maintainability. Publishing the library as an installable package with \texttt{setup.py} and \texttt{pyproject.toml} enables independent versioning, testing with pytest, and potential reuse in other projects requiring QR-based authentication. The library follows object-oriented design principles, with each class encapsulating a distinct responsibility and a custom exception hierarchy providing granular error handling.
 
-The library is available at: \url{https://github.com/Rakshan-cloud/cpp\_app} within the \texttt{qr\_ticket\_manager/} directory, installable via \texttt{pip install -e .} from the package root.
+The library is published on the Python Package Index (PyPI) at \url{https://pypi.org/project/qr-ticket-manager/} and can be installed via \texttt{pip install qr-ticket-manager}. The source code is maintained within the project repository at \url{https://github.com/Rakshan-cloud/cpp\_app}.
 
 \subsection{Library Structure and Implementation}
 
