@@ -8,7 +8,7 @@ env:
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '22'
   AWS_REGION: eu-west-1
-  S3_FRONTEND_BUCKET: rakshan-frontend-prod
+  S3_FRONTEND_BUCKET: rakshan-frontend
   EB_APP_NAME: rakshan-app
   EB_ENV_NAME: rakshan-prod
 
@@ -169,7 +169,7 @@ jobs:
   deploy-frontend:
     name: Build and Deploy Frontend
     runs-on: ubuntu-latest
-    needs: deploy-backend
+    needs: test-library
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -186,31 +186,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Create S3 bucket if not exists
-        run: |
-          aws s3api head-bucket --bucket ${{ env.S3_FRONTEND_BUCKET }} 2>/dev/null || \
-          aws s3api create-bucket \
-            --bucket ${{ env.S3_FRONTEND_BUCKET }} \
-            --region ${{ env.AWS_REGION }} \
-            --create-bucket-configuration LocationConstraint=${{ env.AWS_REGION }}
-
-          aws s3api put-public-access-block --bucket ${{ env.S3_FRONTEND_BUCKET }} \
-            --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"
-
-          aws s3api put-bucket-policy --bucket ${{ env.S3_FRONTEND_BUCKET }} --policy '{
-            "Version": "2012-10-17",
-            "Statement": [{
-              "Sid": "PublicReadGetObject",
-              "Effect": "Allow",
-              "Principal": "*",
-              "Action": "s3:GetObject",
-              "Resource": "arn:aws:s3:::${{ env.S3_FRONTEND_BUCKET }}/*"
-            }]
-          }'
-
-          aws s3 website s3://${{ env.S3_FRONTEND_BUCKET }} --index-document index.html --error-document index.html
+          aws-region: ap-southeast-2
 
       - name: Install dependencies
         run: |
@@ -223,7 +199,7 @@ jobs:
           cd frontend
           npm run build
         env:
-          VITE_API_URL: ${{ needs.deploy-backend.outputs.backend_url }}
+          VITE_API_URL: http://rakshan-prod.eba-7mxtcx4w.ap-southeast-2.elasticbeanstalk.com/api
 
       - name: Deploy to S3
         run: |
@@ -231,5 +207,5 @@ jobs:
 
       - name: Print Deployed URLs
         run: |
-          echo "Frontend: http://${{ env.S3_FRONTEND_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
-          echo "Backend:  ${{ needs.deploy-backend.outputs.backend_url }}"
+          echo "Frontend: http://${{ env.S3_FRONTEND_BUCKET }}.s3-website-ap-southeast-2.amazonaws.com"
+          echo "Backend:  http://rakshan-prod.eba-7mxtcx4w.ap-southeast-2.elasticbeanstalk.com/api"
