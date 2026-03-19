@@ -51,7 +51,20 @@ export default function TicketDetail() {
   }, null, 2);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(typeof qrDataJson === 'string' ? qrDataJson : JSON.stringify(qrDataJson, null, 2));
+    const text = typeof qrDataJson === 'string' ? qrDataJson : JSON.stringify(qrDataJson, null, 2);
+    // Fallback for HTTP (navigator.clipboard requires HTTPS)
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
