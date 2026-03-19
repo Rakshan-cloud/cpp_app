@@ -33,12 +33,12 @@
 
 \title{Rakshan: A Secure QR-Based Event Ticketing Platform on AWS Cloud}
 
-\author{\IEEEauthorblockN{Tarun Chintakunta}
-\IEEEauthorblockA{Student ID: x25180754 \\
+\author{\IEEEauthorblockN{Rakshan}
+\IEEEauthorblockA{Student ID: 25180754 \\
 MSc in Cloud Computing \\
 National College of Ireland \\
 Dublin, Ireland \\
-x25180754@student.ncirl.ie}}
+25180754@student.uwa.edu.au}}
 
 \maketitle
 
@@ -158,7 +158,7 @@ The security model implements defence in depth across multiple layers, following
 
 The \texttt{qr\_ticket\_manager} library was developed as a standalone Python package to encapsulate the complete ticket lifecycle: generation, QR code creation, and validation. The decision to implement this as a separate library rather than inline application code was motivated by several factors. The same cryptographic logic is required in both Lambda functions (generator and validator) and potentially in the Flask API, making code reuse essential for consistency and maintainability. Publishing the library as an installable package with \texttt{setup.py} and \texttt{pyproject.toml} enables independent versioning, testing with pytest, and potential reuse in other projects requiring QR-based authentication. The library follows object-oriented design principles, with each class encapsulating a distinct responsibility and a custom exception hierarchy providing granular error handling.
 
-The library is available at: \url{https://github.com/Tarunchintakunta/CPPRak} within the \texttt{qr\_ticket\_manager/} directory, installable via \texttt{pip install -e .} from the package root.
+The library is available at: \url{https://github.com/Rakshan-cloud/cpp\_app} within the \texttt{qr\_ticket\_manager/} directory, installable via \texttt{pip install -e .} from the package root.
 
 \subsection{Library Structure and Implementation}
 
@@ -339,7 +339,7 @@ The complete ticket lifecycle spans registration through validation. When a user
 
 \section{Deployment and Continuous Delivery}
 
-The application uses Git for version control with a private GitHub repository (\url{https://github.com/Tarunchintakunta/CPPRak}). The deployment process follows a structured workflow. The React frontend is built with the production API URL injected through the \texttt{VITE\_API\_URL} environment variable during the Vite build step, and the resulting static assets are synchronised to the S3 hosting bucket using the AWS CLI \texttt{s3 sync} command with the \texttt{--delete} flag to remove stale assets.
+The application uses Git for version control with a private GitHub repository (\url{https://github.com/Rakshan-cloud/cpp\_app}). The deployment process follows a structured workflow. The React frontend is built with the production API URL injected through the \texttt{VITE\_API\_URL} environment variable during the Vite build step, and the resulting static assets are synchronised to the S3 hosting bucket using the AWS CLI \texttt{s3 sync} command with the \texttt{--delete} flag to remove stale assets.
 
 The backend deployment uses Elastic Beanstalk's application versioning system. The Flask application directory is packaged as a ZIP file and uploaded to the EB-managed S3 bucket, then a new application version is created and deployed to the \texttt{rakshan-prod} environment. Environment-specific configuration is managed through the \texttt{.ebextensions/01\_flask.config} file, which sets environment variables including \texttt{FLASK\_ENV}, \texttt{TICKET\_SECRET\_KEY}, \texttt{S3\_BUCKET}, \texttt{AWS\_REGION}, \texttt{COGNITO\_USER\_POOL\_ID}, and \texttt{COGNITO\_CLIENT\_ID}. The \texttt{Procfile} specifies the Gunicorn WSGI server binding to port 8000 as required by the EB platform.
 
@@ -361,7 +361,7 @@ Integrating Cognito for email verification demonstrated how managed identity ser
 
 Overall, the project achieved its three primary objectives: developing a functional custom library with comprehensive cryptographic ticket management, integrating six AWS cloud services programmatically into a cohesive application, and deploying a publicly accessible platform demonstrating the complete ticketing workflow from registration through QR-based event check-in.
 
-The project could be extended in several directions for production readiness. Adding Amazon CloudFront as a CDN for both the S3-hosted frontend and S3 QR code images would improve global latency and enable HTTPS with custom domain support. Implementing infrastructure-as-code through AWS CloudFormation or Terraform would formalise the currently manual resource provisioning process. Adding a CI/CD pipeline using GitHub Actions with automated testing, building, and deployment would complete the continuous delivery workflow that is currently performed manually.
+A CI/CD pipeline was implemented using GitHub Actions, triggered on every push to the main branch. The pipeline consists of three stages: testing the custom library with pytest, deploying the Flask backend to Elastic Beanstalk, and building and deploying the React frontend to S3. AWS credentials are stored as encrypted GitHub repository secrets, ensuring that no sensitive values are committed to the codebase. The project could be extended in several directions for production readiness, including adding Amazon CloudFront as a CDN for HTTPS support and implementing infrastructure-as-code through AWS CloudFormation or Terraform to formalise the resource provisioning process.
 
 \begin{thebibliography}{00}
 
