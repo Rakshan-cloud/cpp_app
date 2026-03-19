@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { registrationsAPI, ticketsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Ticket, Calendar, MapPin, XCircle, CheckCircle, AlertCircle, QrCode, ArrowRight } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function MyTickets() {
   const [registrations, setRegistrations] = useState([]);
@@ -72,11 +73,12 @@ export default function MyTickets() {
                   {/* QR Preview (left side) */}
                   {reg.status === 'confirmed' && reg.ticket && (
                     <Link to={`/tickets/${reg.ticket.ticket_id}`} className="sm:w-24 sm:min-h-full bg-gray-50 border-b sm:border-b-0 sm:border-r border-border-light flex items-center justify-center p-3 no-underline">
-                      <img
-                        src={ticketsAPI.getQrUrl(reg.ticket.ticket_id)}
-                        alt="QR"
-                        className="w-16 h-16 object-contain opacity-80"
-                        onError={(e) => { e.target.style.display = 'none'; }}
+                      <QRCodeSVG
+                        value={reg.ticket.ticket_id || 'ticket'}
+                        size={56}
+                        level="L"
+                        bgColor="transparent"
+                        fgColor="#374151"
                       />
                     </Link>
                   )}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ticketsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { ArrowLeft, QrCode, Calendar, CheckCircle, XCircle, AlertCircle, Copy, Shield, Hash, Clock } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function TicketDetail() {
   const { id } = useParams();
@@ -78,18 +79,17 @@ export default function TicketDetail() {
           </div>
         </div>
 
-        {/* QR Code Section */}
+        {/* QR Code Section - Generated on frontend from ticket data */}
         <div className="p-6 flex flex-col items-center bg-gradient-to-b from-gray-50 to-white">
           {ticket.status === 'valid' ? (
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <img
-                src={ticketsAPI.getQrUrl(ticket.ticket_id)}
-                alt="QR Code"
-                className="w-56 h-56 object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = '<div class="w-56 h-56 flex flex-col items-center justify-center"><svg class="w-16 h-16 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg><p class="text-gray-400 text-xs">QR unavailable</p></div>';
-                }}
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+              <QRCodeSVG
+                value={typeof qrDataJson === 'string' ? qrDataJson : JSON.stringify(qrDataJson)}
+                size={220}
+                level="H"
+                includeMargin={true}
+                bgColor="#ffffff"
+                fgColor="#1a1a2e"
               />
             </div>
           ) : (
