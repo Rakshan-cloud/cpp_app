@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Sparkles } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +10,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const useDemo = () => {
+    setEmail('admin@rakshan.com');
+    setPassword('admin123');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,9 +37,30 @@ export default function Login() {
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-text mb-1">Welcome back</h1>
           <p className="text-text-muted text-sm">Sign in to your account</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={useDemo}
+          className="w-full mb-5 flex items-center justify-between gap-2 px-4 py-2.5 rounded-md border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
+            <div>
+              <div className="text-xs font-semibold text-primary leading-tight">Try the Admin Demo</div>
+              <div className="text-[11px] text-text-muted leading-tight">admin@rakshan.com &middot; admin123</div>
+            </div>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">Use</span>
+        </button>
+
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px bg-border"></div>
+          <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">or sign in</span>
+          <div className="flex-1 h-px bg-border"></div>
         </div>
 
         <form onSubmit={handleSubmit}>
