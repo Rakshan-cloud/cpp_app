@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI, eventsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Users, Calendar, Ticket, CheckCircle, ChevronRight, Download, UserCheck, XCircle, Plus, ScanLine } from 'lucide-react';
+import { Users, Calendar, Ticket, CheckCircle, ChevronRight, Download, UserCheck, XCircle, Plus, ScanLine, RefreshCw } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -12,6 +12,32 @@ export default function AdminDashboard() {
   const [attendees, setAttendees] = useState([]);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
   const [exportingId, setExportingId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboard = async () => {
+    try {
+      const [dashRes, evRes] = await Promise.all([
+        adminAPI.dashboard(),
+        eventsAPI.list(),
+      ]);
+      setStats(dashRes.data.stats);
+      setEvents(evRes.data.events || []);
+    } catch {}
+  };
+
+  const refreshAll = async () => {
+    setRefreshing(true);
+    try {
+      await fetchDashboard();
+      // If an attendees list is currently open, refresh it too
+      if (selectedEvent) {
+        const res = await adminAPI.attendees(selectedEvent);
+        setAttendees(res.data.attendees || []);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const downloadCsv = async (event) => {
     setExportingId(event.event_id);
@@ -35,14 +61,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    Promise.all([
-      adminAPI.dashboard(),
-      eventsAPI.list(),
-    ]).then(([dashRes, evRes]) => {
-      setStats(dashRes.data.stats);
-      setEvents(evRes.data.events || []);
-    }).catch(() => {})
-      .finally(() => setLoading(false));
+    fetchDashboard().finally(() => setLoading(false));
   }, []);
 
   const viewAttendees = async (eventId) => {
@@ -72,6 +91,15 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={refreshAll}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-surface-alt text-text px-3 py-2 rounded-md text-xs font-medium border border-border transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
           <Link to="/admin/scan" className="inline-flex items-center gap-1.5 bg-white hover:bg-surface-alt text-text px-3 py-2 rounded-md text-xs font-medium no-underline border border-border transition-colors">
             <ScanLine className="w-3.5 h-3.5" /> Scan
           </Link>
