@@ -57,7 +57,8 @@ export const ticketsAPI = {
 export const adminAPI = {
   dashboard: () => api.get('/admin/dashboard'),
   attendees: (eventId) => api.get(`/admin/events/${eventId}/attendees`),
-  exportUrl: (eventId) => `${import.meta.env.VITE_API_URL || '/api'}/admin/events/${eventId}/export`,
+  exportCsv: (eventId) =>
+    api.get(`/admin/events/${eventId}/export`, { responseType: 'blob' }),
 };
 
 export default api;

@@ -11,6 +11,28 @@ export default function AdminDashboard() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [attendees, setAttendees] = useState([]);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
+  const [exportingId, setExportingId] = useState(null);
+
+  const downloadCsv = async (event) => {
+    setExportingId(event.event_id);
+    try {
+      const res = await adminAPI.exportCsv(event.event_id);
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = (event.name || 'event').replace(/\s+/g, '_');
+      link.download = `attendees_${safeName}_${event.event_id.slice(0, 8)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download CSV. Please try again.');
+    } finally {
+      setExportingId(null);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -86,13 +108,14 @@ export default function AdminDashboard() {
                   <p className="text-xs text-text-muted">{event.date} &middot; {event.location} &middot; {event.capacity} cap</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 ml-3">
-                  <a
-                    href={adminAPI.exportUrl(event.event_id)}
-                    className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text bg-surface-alt px-2 py-1 rounded no-underline transition-colors border border-border-light"
-                    target="_blank" rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => downloadCsv(event)}
+                    disabled={exportingId === event.event_id}
+                    className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text bg-surface-alt px-2 py-1 rounded transition-colors border border-border-light cursor-pointer disabled:opacity-50"
                   >
-                    <Download className="w-3 h-3" /> CSV
-                  </a>
+                    <Download className="w-3 h-3" /> {exportingId === event.event_id ? 'Exporting…' : 'CSV'}
+                  </button>
                   <button
                     onClick={() => viewAttendees(event.event_id)}
                     className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-light bg-orange-50 px-2 py-1 rounded border border-orange-100 cursor-pointer font-medium transition-colors"
