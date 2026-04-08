@@ -158,61 +158,75 @@ export default function AdminDashboard() {
       </div>
 
       {selectedEvent && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-              Attendees <span className="text-text-muted font-normal normal-case">({attendees.length})</span>
-            </h2>
-            <button onClick={() => setSelectedEvent(null)} className="text-xs text-text-muted hover:text-text bg-transparent border-none cursor-pointer">
-              Close
-            </button>
-          </div>
-
-          {loadingAttendees ? (
-            <LoadingSpinner size="sm" />
-          ) : attendees.length === 0 ? (
-            <p className="text-text-muted text-center py-8 bg-white rounded-lg border border-border-light text-sm">No attendees yet</p>
-          ) : (
-            <div className="bg-white rounded-lg border border-border-light overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-light text-left">
-                    <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Name</th>
-                    <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Email</th>
-                    <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Status</th>
-                    <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Checked In</th>
-                    <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Ticket</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-light">
-                  {attendees.map((a) => (
-                    <tr key={a.registration_id} className="hover:bg-surface-alt/50">
-                      <td className="px-3 py-2.5 text-xs font-medium">{a.name || 'N/A'}</td>
-                      <td className="px-3 py-2.5 text-xs text-text-muted">{a.email || 'N/A'}</td>
-                      <td className="px-3 py-2.5">
-                        <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${a.status === 'confirmed' ? 'text-success' : 'text-danger'}`}>
-                          {a.status === 'confirmed' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                          {a.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {a.checked_in ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-success"><UserCheck className="w-3 h-3" /> Yes</span>
-                        ) : (
-                          <span className="text-[11px] text-text-muted">No</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className={`text-[11px] font-medium ${a.ticket_status === 'valid' ? 'text-success' : a.ticket_status === 'used' ? 'text-amber-600' : 'text-danger'}`}>
-                          {a.ticket_status || 'N/A'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelectedEvent(null)}
+        >
+          <div
+            className="bg-white rounded-lg border border-border-light w-full max-w-3xl max-h-[85vh] flex flex-col shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-light">
+              <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+                Attendees <span className="text-text-muted font-normal normal-case">({attendees.length})</span>
+              </h2>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="text-text-muted hover:text-text bg-transparent border-none cursor-pointer p-1"
+                aria-label="Close"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
             </div>
-          )}
+
+            <div className="flex-1 overflow-y-auto p-5">
+              {loadingAttendees ? (
+                <LoadingSpinner size="sm" />
+              ) : attendees.length === 0 ? (
+                <p className="text-text-muted text-center py-8 text-sm">No attendees yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border-light text-left">
+                        <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Name</th>
+                        <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Email</th>
+                        <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Status</th>
+                        <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Checked In</th>
+                        <th className="px-3 py-2.5 font-medium text-text-muted text-xs">Ticket</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-light">
+                      {attendees.map((a) => (
+                        <tr key={a.registration_id} className="hover:bg-surface-alt/50">
+                          <td className="px-3 py-2.5 text-xs font-medium">{a.name || 'N/A'}</td>
+                          <td className="px-3 py-2.5 text-xs text-text-muted">{a.email || 'N/A'}</td>
+                          <td className="px-3 py-2.5">
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${a.status === 'confirmed' ? 'text-success' : 'text-danger'}`}>
+                              {a.status === 'confirmed' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                              {a.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            {a.checked_in ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] text-success"><UserCheck className="w-3 h-3" /> Yes</span>
+                            ) : (
+                              <span className="text-[11px] text-text-muted">No</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span className={`text-[11px] font-medium ${a.ticket_status === 'valid' ? 'text-success' : a.ticket_status === 'used' ? 'text-amber-600' : 'text-danger'}`}>
+                              {a.ticket_status || 'N/A'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
