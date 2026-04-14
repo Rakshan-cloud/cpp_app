@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI, eventsAPI } from '../services/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { Users, Calendar, Ticket, CheckCircle, ChevronRight, Download, UserCheck, XCircle, Plus, ScanLine, RefreshCw } from 'lucide-react';
+import { Users, Calendar, Ticket, CheckCircle, ChevronRight, Download, UserCheck, XCircle, Plus, ScanLine, RefreshCw, Pencil, Trash2, X, Check } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -13,6 +13,49 @@ export default function AdminDashboard() {
   const [loadingAttendees, setLoadingAttendees] = useState(false);
   const [exportingId, setExportingId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleEditStart = (event) => {
+    setEditingEvent(event.event_id);
+    setEditForm({
+      name: event.name || '',
+      description: event.description || '',
+      date: event.date || '',
+      time: event.time || '',
+      location: event.location || '',
+      capacity: event.capacity || 0,
+    });
+  };
+
+  const handleEditSave = async () => {
+    setSavingEdit(true);
+    try {
+      await eventsAPI.update(editingEvent, editForm);
+      setEditingEvent(null);
+      await fetchDashboard();
+    } catch {
+      alert('Failed to update event');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDelete = async (eventId, eventName) => {
+    if (!confirm(`Delete "${eventName}"? This cannot be undone.`)) return;
+    setDeletingId(eventId);
+    try {
+      await eventsAPI.delete(eventId);
+      if (selectedEvent === eventId) setSelectedEvent(null);
+      await fetchDashboard();
+    } catch {
+      alert('Failed to delete event');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -130,27 +173,75 @@ export default function AdminDashboard() {
         ) : (
           <div className="divide-y divide-border-light">
             {events.map((event) => (
-              <div key={event.event_id} className="flex items-center justify-between p-3.5 hover:bg-surface-alt/50 transition-colors">
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-medium truncate">{event.name}</h3>
-                  <p className="text-xs text-text-muted">{event.date} &middot; {event.location} &middot; {event.capacity} cap</p>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0 ml-3">
-                  <button
-                    type="button"
-                    onClick={() => downloadCsv(event)}
-                    disabled={exportingId === event.event_id}
-                    className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text bg-surface-alt px-2 py-1 rounded transition-colors border border-border-light cursor-pointer disabled:opacity-50"
-                  >
-                    <Download className="w-3 h-3" /> {exportingId === event.event_id ? 'Exporting…' : 'CSV'}
-                  </button>
-                  <button
-                    onClick={() => viewAttendees(event.event_id)}
-                    className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-light bg-orange-50 px-2 py-1 rounded border border-orange-100 cursor-pointer font-medium transition-colors"
-                  >
-                    Attendees <ChevronRight className="w-3 h-3" />
-                  </button>
-                </div>
+              <div key={event.event_id}>
+                {editingEvent === event.event_id ? (
+                  <div className="p-4 space-y-3 bg-surface-alt/30">
+                    <div className="grid grid-cols-2 gap-3">
+                      <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Event name"
+                        className="border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                      <input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} placeholder="Location"
+                        className="border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                        className="border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                      <input value={editForm.time} onChange={(e) => setEditForm({ ...editForm, time: e.target.value })} placeholder="Time"
+                        className="border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                      <input type="number" min="1" value={editForm.capacity} onChange={(e) => setEditForm({ ...editForm, capacity: parseInt(e.target.value) || 0 })} placeholder="Capacity"
+                        className="border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                    </div>
+                    <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={2} placeholder="Description"
+                      className="w-full border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                    <div className="flex gap-2">
+                      <button onClick={handleEditSave} disabled={savingEdit}
+                        className="inline-flex items-center gap-1 text-xs font-medium bg-primary text-white px-3 py-1.5 rounded-md hover:bg-primary-dark disabled:opacity-50 cursor-pointer transition-colors">
+                        <Check className="w-3.5 h-3.5" /> {savingEdit ? 'Saving…' : 'Save'}
+                      </button>
+                      <button onClick={() => setEditingEvent(null)}
+                        className="inline-flex items-center gap-1 text-xs font-medium bg-surface-alt text-text px-3 py-1.5 rounded-md hover:bg-border-light cursor-pointer border border-border transition-colors">
+                        <X className="w-3.5 h-3.5" /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3.5 hover:bg-surface-alt/50 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-medium truncate">{event.name}</h3>
+                      <p className="text-xs text-text-muted">{event.date} &middot; {event.location} &middot; {event.capacity} cap</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                      <button
+                        type="button"
+                        onClick={() => handleEditStart(event)}
+                        className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-primary bg-surface-alt px-2 py-1 rounded transition-colors border border-border-light cursor-pointer"
+                      >
+                        <Pencil className="w-3 h-3" /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(event.event_id, event.name)}
+                        disabled={deletingId === event.event_id}
+                        className="inline-flex items-center gap-1 text-[11px] text-danger hover:text-white hover:bg-danger bg-red-50 px-2 py-1 rounded transition-colors border border-red-100 cursor-pointer disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3 h-3" /> {deletingId === event.event_id ? '…' : 'Delete'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => downloadCsv(event)}
+                        disabled={exportingId === event.event_id}
+                        className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text bg-surface-alt px-2 py-1 rounded transition-colors border border-border-light cursor-pointer disabled:opacity-50"
+                      >
+                        <Download className="w-3 h-3" /> {exportingId === event.event_id ? '…' : 'CSV'}
+                      </button>
+                      <button
+                        onClick={() => viewAttendees(event.event_id)}
+                        className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-light bg-orange-50 px-2 py-1 rounded border border-orange-100 cursor-pointer font-medium transition-colors"
+                      >
+                        Attendees <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
